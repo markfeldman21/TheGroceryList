@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">TheGroceryList</string>
+    <string name="swipe_message">Swipe to Delete</string>
+    <string name="item_filler">Food Item</string>
+    <string name="add_hint">Please Enter Your Item Here</string>
+    <string name="add_button">Add To List</string>
+</resources>
