@@ -18,6 +18,10 @@
         <activity android:name=".activities.AddItem"
             android:parentActivityName=".activities.MainActivity">
         </activity>
+        <provider
+            android:authorities="com.markfeldman.thegrocerylist"
+            android:name=".data.GroceryContentProvider"
+            android:exported="false"/>
     </application>
 
 </manifest>

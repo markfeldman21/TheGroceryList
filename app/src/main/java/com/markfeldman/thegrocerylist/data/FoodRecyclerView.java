@@ -1,7 +1,9 @@
 package com.markfeldman.thegrocerylist.data;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,15 +11,10 @@ import android.widget.TextView;
 
 import com.markfeldman.thegrocerylist.R;
 
-/**
- * Created by markfeldman on 2/6/17.
- */
-
 public class FoodRecyclerView extends RecyclerView.Adapter<FoodRecyclerView.RecyclerHolder> {
-    public String[]foodList;
+    public Cursor cursor;
 
-    public FoodRecyclerView(String[] input){
-        this.foodList = input;
+    public FoodRecyclerView(){
     }
 
     @Override
@@ -31,13 +28,21 @@ public class FoodRecyclerView extends RecyclerView.Adapter<FoodRecyclerView.Recy
 
     @Override
     public void onBindViewHolder(RecyclerHolder holder, int position) {
-        holder.item.setText(foodList[position]);
+        cursor.moveToPosition(position);
+        int idIndex = cursor.getInt(cursor.getColumnIndex(FoodContract.FoodList._ID));
+        String item = cursor.getString(cursor.getColumnIndex(FoodContract.FoodList.ITEM_NAME));
+        holder.item.setText(item);
+        holder.itemView.setTag(idIndex);
 
     }
 
     @Override
     public int getItemCount() {
-        return foodList.length;
+        if (cursor == null){
+            return 0;
+        }
+
+        return cursor.getCount();
     }
 
     public class RecyclerHolder extends RecyclerView.ViewHolder {
@@ -46,5 +51,10 @@ public class FoodRecyclerView extends RecyclerView.Adapter<FoodRecyclerView.Recy
             super(itemView);
             item = (TextView)itemView.findViewById(R.id.item);
         }
+    }
+
+    public void swap (Cursor cursor){
+        this.cursor = cursor;
+        notifyDataSetChanged();
     }
 }

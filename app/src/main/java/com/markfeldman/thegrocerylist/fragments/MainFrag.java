@@ -12,6 +12,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,9 +24,11 @@ import com.markfeldman.thegrocerylist.data.FoodRecyclerView;
 
 public class MainFrag extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private FloatingActionButton floatingActionButton;
+    private FoodRecyclerView foodRecyclerView;
     private static final int LOADER_ID = 1;
-    private String [] foodList = {"Tomotoes", "Cabbage","Cheese"};
     private RecyclerView recyclerView;
+    private int mPosition = RecyclerView.NO_POSITION;
+    private final String TAG = getClass().getSimpleName();
 
 
     public MainFrag() {
@@ -40,8 +43,27 @@ public class MainFrag extends Fragment implements LoaderManager.LoaderCallbacks<
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setHasFixedSize(true);
-        FoodRecyclerView foodRecyclerView = new FoodRecyclerView(foodList);
+        foodRecyclerView = new FoodRecyclerView();
         recyclerView.setAdapter(foodRecyclerView);
+
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                int id = (int)viewHolder.itemView.getTag();
+                String idForUri = Integer.toString(id);
+                Uri uri = FoodContract.FoodList.CONTENT_URI;
+                uri = uri.buildUpon().appendPath(idForUri).build();
+                getContext().getContentResolver().delete(uri,null,null);
+
+                getActivity().getSupportLoaderManager().restartLoader(LOADER_ID,null,MainFrag.this);
+
+            }
+        }).attachToRecyclerView(recyclerView);
 
         floatingActionButton = (FloatingActionButton)view.findViewById(R.id.fab);
 
@@ -63,7 +85,7 @@ public class MainFrag extends Fragment implements LoaderManager.LoaderCallbacks<
         switch(id){
             case LOADER_ID: {
                 Uri foodQueryUri = FoodContract.FoodList.CONTENT_URI;
-                String[] projection = {FoodContract.FoodList.ITEM_NAME};
+                String[] projection = {FoodContract.FoodList._ID,FoodContract.FoodList.ITEM_NAME};
                 String sortOrder = FoodContract.FoodList.ITEM_NAME + " COLLATE NOCASE ASC";
 
                 CursorLoader cursorLoader = new CursorLoader(getActivity(),foodQueryUri,projection,null,null,sortOrder);
@@ -77,10 +99,13 @@ public class MainFrag extends Fragment implements LoaderManager.LoaderCallbacks<
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
+        foodRecyclerView.swap(data);
+
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        foodRecyclerView.swap(null);
 
     }
 }
